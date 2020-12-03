@@ -2,9 +2,9 @@
   <section class="index">
     <card
       v-for="(post, i) in posts"
+      :id="post.sys.id"
       :key="i"
       :title="post.fields.title"
-      :id="post.sys.id"
       :date="post.sys.updatedAt"
     />
   </section>
@@ -12,7 +12,7 @@
 
 <script>
 import Card from '~/components/card.vue'
-import { createClient } from '~/plugins/contentful.js'
+import { createClient } from '~/plugins/contentful'
 
 const client = createClient()
 export default {
@@ -20,15 +20,12 @@ export default {
   components: {
     Card,
   },
-  asyncData({ env, params }) {
-    return client
-      .getEntries(env.CTF_BLOG_POST_TYPE_ID)
-      .then((entries) => {
-        return {
-          posts: entries.items,
-        }
-      })
-      .catch(console.error)
+  asyncData({ env }) {
+    return client.getEntries(env.CTF_BLOG_POST_TYPE_ID).then((entries) => {
+      return {
+        posts: entries.items,
+      }
+    })
   },
 }
 </script>

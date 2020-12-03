@@ -1,33 +1,14 @@
-import colors from 'vuetify/es5/util/colors'
+import colors from 'vuetify/src/util/colors'
 
-const pkg = require('./package')
-const { getConfigForKeys } = require('./lib/config.js')
+import { getConfigForKeys } from './lib/config'
+import { createClient } from './plugins/contentful'
+
 const ctfConfig = getConfigForKeys([
   'CTF_BLOG_POST_TYPE_ID',
   'CTF_SPACE_ID',
   'CTF_CDA_ACCESS_TOKEN',
 ])
-
-const { createClient } = require('./plugins/contentful')
-const cdaClient = createClient(ctfConfig)
-
-module.exports = {
-  // 省略、、、
-  generate: {
-    routes() {
-      return cdaClient
-        .getEntries(ctfConfig.CTF_BLOG_POST_TYPE_ID)
-        .then((entries) => {
-          return [...entries.items.map((entry) => `/blog/${entry.fields.slug}`)]
-        })
-    },
-  },
-  env: {
-    CTF_SPACE_ID: ctfConfig.CTF_SPACE_ID,
-    CTF_CDA_ACCESS_TOKEN: ctfConfig.CTF_CDA_ACCESS_TOKEN,
-    CTF_BLOG_POST_TYPE_ID: ctfConfig.CTF_BLOG_POST_TYPE_ID,
-  },
-}
+const cdaClient = createClient()
 
 export default {
   // Target (https://go.nuxtjs.dev/config-target)
@@ -92,4 +73,28 @@ export default {
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {},
+
+  typescript: {
+    typeCheck: true,
+    ignoreNotFoundWarnings: true,
+  },
+
+  generate: {
+    async routes() {
+      const entries = await cdaClient.getEntries(
+        ctfConfig.CTF_BLOG_POST_TYPE_ID
+      )
+      return [
+        ...entries.items.map(
+          (entry: { fields: { slug: any } }) => `/blog/${entry.fields.slug}`
+        ),
+      ]
+    },
+  },
+
+  env: {
+    CTF_SPACE_ID: ctfConfig.CTF_SPACE_ID,
+    CTF_CDA_ACCESS_TOKEN: ctfConfig.CTF_CDA_ACCESS_TOKEN,
+    CTF_BLOG_POST_TYPE_ID: ctfConfig.CTF_BLOG_POST_TYPE_ID,
+  },
 }
